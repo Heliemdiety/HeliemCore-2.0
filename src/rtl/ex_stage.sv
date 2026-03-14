@@ -27,9 +27,7 @@ module rv32_execute (
     logic  zero, less_signed, less_unsigned;
     logic  branch_condition_met;
 
-    // -------------------------------------------------------------------------
     // 1. Data Forwarding Multiplexers
-    // -------------------------------------------------------------------------
     always_comb begin
         // Operand A Forwarding
         case (forward_a)
@@ -46,17 +44,14 @@ module rv32_execute (
         endcase
     end
 
-    // -------------------------------------------------------------------------
     // 2. ALU Input Multiplexers
-    // -------------------------------------------------------------------------
     // src_a == 1 ? PC : Forwarded rs1
     assign alu_in_a = (id_ex_reg.ctrl.alu_src_a) ? id_ex_reg.pc  : op_a_fwd;
     // src_b == 1 ? Immediate : Forwarded rs2
     assign alu_in_b = (id_ex_reg.ctrl.alu_src_b) ? id_ex_reg.imm : op_b_fwd;
 
-    // -------------------------------------------------------------------------
+
     // 3. The ALU
-    // -------------------------------------------------------------------------
     rv32_alu alu_inst (
         .a(alu_in_a),
         .b(alu_in_b),
@@ -67,9 +62,7 @@ module rv32_execute (
         .less_unsigned(less_unsigned)
     );
 
-    // -------------------------------------------------------------------------
     // 4. Branch Evaluation Logic
-    // -------------------------------------------------------------------------
     always_comb begin
         case (id_ex_reg.funct3)
             3'b000: branch_condition_met = zero;             // BEQ
@@ -85,9 +78,8 @@ module rv32_execute (
     assign ex_branch_taken = id_ex_reg.ctrl.is_branch & branch_condition_met;
     assign ex_jump_taken   = id_ex_reg.ctrl.is_jump;
 
-    // -------------------------------------------------------------------------
+
     // 5. Target Address Calculation (Branch / JAL / JALR)
-    // -------------------------------------------------------------------------
     always_comb begin
         // JALR sets alu_src_b=1 in the decoder. The ALU naturally calculates rs1 + imm.
         // The RISC-V spec requires setting the LSB of JALR target to 0.
@@ -99,9 +91,7 @@ module rv32_execute (
         end
     end
 
-    // -------------------------------------------------------------------------
     // 6. Package the data for the next stage (MEM)
-    // -------------------------------------------------------------------------
     always_comb begin
         ex_mem_data.alu_result = alu_result;
         // We pass the forwarded rs2 data down because the Store instruction needs it!
