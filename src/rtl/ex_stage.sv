@@ -1,5 +1,5 @@
 import rv32_pkg::*;
-
+ 
 module rv32_execute (
     // The giant struct containing everything from the Decode stage
     input  id_ex_t     id_ex_reg,
