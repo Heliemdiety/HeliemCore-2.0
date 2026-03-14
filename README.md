@@ -54,8 +54,3 @@ Synthesized via Xilinx Vivado for standard FPGA deployment.
 
 
 
-
-
-│   ├── scoreboards/            # Golden Predictor UVM Scoreboards
-│   └── firmware_hex/           # Machine code dumps for A* and Dijkstra kernels
-└── README.md
