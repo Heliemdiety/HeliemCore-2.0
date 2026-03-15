@@ -1,9 +1,6 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-// ============================================================================
-// . THE SCOREBOARD (THE GOLDEN PREDICTOR)
-// ============================================================================
 class cpu_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(cpu_scoreboard)
 
@@ -12,9 +9,7 @@ class cpu_scoreboard extends uvm_scoreboard;
     int pass_count = 0;
     int fail_count = 0;
 
-    // -------------------------------------------------------------------------
-    // THE SHADOW REGISTER FILE (The Golden Software State)
-    // -------------------------------------------------------------------------
+
     logic [31:0] shadow_rf [32];
 
     function new(string name = "cpu_scoreboard", uvm_component parent = null);
@@ -28,9 +23,7 @@ class cpu_scoreboard extends uvm_scoreboard;
         for(int i=0; i<32; i++) shadow_rf[i] = 32'd0;
     endfunction
 
-    // -------------------------------------------------------------------------
-    // THE GOLDEN PREDICTOR LOGIC
-    // -------------------------------------------------------------------------
+
     virtual function void write(cpu_transaction tx);
         // Decode the instruction fields in software!
         logic [6:0] opcode = tx.inst[6:0];
@@ -41,7 +34,7 @@ class cpu_scoreboard extends uvm_scoreboard;
         logic [31:0] expected_val;
         logic [31:0] imm;
 
-        // In RISC-V, writes to x0 are ignored. Let the hardware do it, but we ignore it.
+        // In RISC-V, writes to x0 are ignored. 
         if (tx.rf_we && rd == 5'd0) return;
 
         if (tx.rf_we) begin
@@ -49,10 +42,10 @@ class cpu_scoreboard extends uvm_scoreboard;
             case (opcode)
                 7'b0010011: begin // ADDI
                     imm = {{20{tx.inst[31]}}, tx.inst[31:20]}; // Sign extend
-                    expected_val = shadow_rf[rs1] + imm;       // Calculate!
+                    expected_val = shadow_rf[rs1] + imm;       // Calculate
                 end
                 7'b0110011: begin // ADD
-                    expected_val = shadow_rf[rs1] + shadow_rf[rs2]; // Calculate!
+                    expected_val = shadow_rf[rs1] + shadow_rf[rs2]; // Calculate
                 end
                 7'b1101111: begin // JAL (Return Address)
                     expected_val = tx.pc + 4;
@@ -75,7 +68,7 @@ class cpu_scoreboard extends uvm_scoreboard;
             end
 
             // 3. UPDATE THE SHADOW STATE
-            // We must update our software registers so the next calculation is correct!
+            // We must update our software registers so the next calculation is correct.
             shadow_rf[rd] = expected_val;
         end
     endfunction
