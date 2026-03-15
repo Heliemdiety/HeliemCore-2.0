@@ -1,10 +1,6 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-
-// ============================================================================
-// 4. THE SCOREBOARD (A* KERNEL PREDICTOR)
-// ============================================================================
 class a_star_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(a_star_scoreboard)
 
