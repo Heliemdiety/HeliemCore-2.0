@@ -20,10 +20,6 @@ class cpu_monitor extends uvm_monitor;
         super.build_phase(phase);
         monitor_port = new("monitor_port", this);
         
-        // This is UVM magic: Grab the interface from the configuration database The Senior Architect's Question to You:
-// Notice line 24 in the cpu_monitor.sv. It uses something called the uvm_config_db.
-// In standard Verilog, we connect modules using physical wires in a Top Module (.clk(clk)). But classes in SystemVerilog (like our Monitor) don't have physical pins! So how does the software Monitor actually connect to the hardware Interface wires? It uses the UVM Configuration Database—a global dictionary where the Top Module "deposits" the interface pointer, and the Monitor "retrieves" it.
-// Take a look through the run_phase in the Monitor and the write function in the Scoreboard.
         if (!uvm_config_db#(virtual cpu_if)::get(this, "", "vif", vif)) begin                           
             `uvm_fatal("MON_ERR", "Failed to get virtual interface from config DB!")
         end
