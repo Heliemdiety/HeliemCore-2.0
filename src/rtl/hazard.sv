@@ -1,7 +1,7 @@
 import rv32_pkg::*;
 
 module rv32_hazard (
-    // Inputs from ID Stage (Checking what registers we want to read)
+    // Inputs from ID Stage 
     input  reg_addr_t id_rs1,
     input  reg_addr_t id_rs2,
     
@@ -36,7 +36,7 @@ module rv32_hazard (
 
         // 2. Control Hazard Detection (Branch/Jump Taken)
         // Overrides Load-Use hazards! If we branch, we must flush the pipeline
-        // to achieve the 2-cycle penalty described in your research paper.
+        // to achieve the 2-cycle penalty.
 
         if (ex_branch_taken || ex_jump_taken) begin
             stall_if    = 1'b0; 
