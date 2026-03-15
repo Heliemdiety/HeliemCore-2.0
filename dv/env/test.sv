@@ -17,17 +17,12 @@ class base_test extends uvm_test;
 
     // RUN PHASE: The actual simulation timeline
     virtual task run_phase(uvm_phase phase);
-        // Tell UVM: "Don't stop the simulation, I am busy!"
         phase.raise_objection(this);
         
         `uvm_info("TEST", "Starting UVM Test...", UVM_LOW)
-        
-        // Let the CPU run for 4000 nanoseconds (plenty of time for Fibonacci)
         #4000ns;
         
         `uvm_info("TEST", "Test duration complete.", UVM_LOW)
-        
-        // Tell UVM: "I am done, you can stop the simulation now."
         phase.drop_objection(this);
     endtask
 
