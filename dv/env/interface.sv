@@ -1,17 +1,7 @@
-// -----------------------------------------------------------------------------
-// This Interface is the physical bridge between the UVM world (Software) 
-// and your RISC-V CPU (Hardware). 
-// -----------------------------------------------------------------------------
 interface cpu_if (input logic clk);
     
     // Core control
     logic rst_n;
-
-    // -------------------------------------------------------------------------
-    // PASSIVE MONITORS (Spying on the CPU internal state)
-    // -------------------------------------------------------------------------
-    // To verify a CPU, UVM needs to see what instructions are executing 
-    // and what the CPU is writing back to the Register File.
     
     // IF Stage Spies
     logic [31:0] pc;
