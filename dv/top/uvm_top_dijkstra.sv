@@ -9,11 +9,11 @@ import rv32_pkg::*;
 
 // PULL IN THE UVM CLASSES WITH ABSOLUTE PATHS
 // -----------------------------------------------------------------------------
-`include "D:/ACTUAL_WORK/senior engineer CPU/UVM/cpu_transactions.sv"
-`include "D:/ACTUAL_WORK/senior engineer CPU/UVM/scoreboard.sv"
-`include "D:/ACTUAL_WORK/senior engineer CPU/UVM/monitor.sv"
-`include "D:/ACTUAL_WORK/senior engineer CPU/UVM/environment.sv"
-`include "D:/ACTUAL_WORK/senior engineer CPU/UVM/test.sv"
+`include "D:/ACTUAL_WORK/CPU/UVM/cpu_transactions.sv"
+`include "D:/ACTUAL_WORK/CPU/UVM/scoreboard.sv"
+`include "D:/ACTUAL_WORK/CPU/UVM/monitor.sv"
+`include "D:/ACTUAL_WORK/CPU/UVM/environment.sv"
+`include "D:/ACTUAL_WORK/CPU/UVM/test.sv"
 
 module tb_uvm_top();
 
@@ -48,13 +48,7 @@ module tb_uvm_top();
     // Clock Generator
     always #5 clk = ~clk;
 
-    // -------------------------------------------------------------------------
-    // THE BULLETPROOF FIRMWARE INJECTION
-    // Bypassing $readmemh completely just like we did before!
-    // -------------------------------------------------------------------------
-    // -------------------------------------------------------------------------
-    // THE BULLETPROOF FIRMWARE INJECTION (Dijkstra Custom Kernel)
-    // -------------------------------------------------------------------------
+
     initial begin
         // 1. ADDI x1, x0, 20 (Load a distance of 20)
         uut.imem_inst.rom[0]  = 32'h01400093; 
@@ -85,9 +79,8 @@ module tb_uvm_top();
         #10 rst_n = 1;
     end
 
-    // -------------------------------------------------------------------------
+    
     // THE UVM BOOTSTRAPPER
-    // -------------------------------------------------------------------------
     initial begin
         // Drop the physical 'vif' into the global database so the Monitor can find it!
         uvm_config_db#(virtual cpu_if)::set(null, "*", "vif", vif);
