@@ -1,9 +1,6 @@
 import uvm_pkg::*;
 `include "uvm_macros.svh"
 
-// ============================================================================
-// 4. THE SCOREBOARD (THE GOLDEN PREDICTOR)
-// ============================================================================
 class cpu_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(cpu_scoreboard)
 
