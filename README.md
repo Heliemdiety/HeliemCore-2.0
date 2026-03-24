@@ -1,8 +1,8 @@
-# 5-Stage Pipelined RV32I Core with Custom Graph Accelerator
+# Hardware Accelerated RV32I SoC via Custom ISA & AXI4 Memory Subsystem
 
 > **Developed by Monish Chandra Janghel** | *Electronics and Communication Engineering, NIT Raipur* > 📄 **IEEE Publication:** [Accepted and Presented at IEEE INDICON (https://ieeexplore.ieee.org/document/11392913)](#)
 
-A ground-up implementation of a 32-bit RISC-V processor (RV32I base integer instruction set) written entirely in SystemVerilog. This core features a classic 5-stage pipeline with full data forwarding, hazard detection, and a custom Instruction Set Architecture (ISA) extension specifically designed to accelerate graph traversal algorithms like Dijkstra and A*.
+A ground-up implementation of a 32-bit RISC-V processor (RV32I base integer instruction set) written entirely in SystemVerilog. This core features a classic 5-stage pipeline with dual-domain hazard resolution, an **AMBA AXI4-Full memory subsystem**, full data forwarding, hazard detection, and a custom Instruction Set Architecture (ISA) extension specifically designed to accelerate graph traversal algorithms like Dijkstra and A*.
 
 The core is rigorously verified using a custom Universal Verification Methodology (UVM) framework featuring a Shadow Register File Scoreboard for dynamic instruction prediction and golden model comparison.
 
@@ -17,6 +17,12 @@ Analytical cycle modeling shows up to **3x instruction count reduction** and up 
 
 ---
 
+## 🚀 Latest Architecture Update: AXI4-Full Memory Subsystem
+HeliemCore has been upgraded from a standard 1-cycle academic memory model to a professional, non-blocking **AMBA AXI4-Full** memory subsystem to interface with standard DDR memory controllers.
+* **Decoupled FSMs:** Independent tracking of `AW`, `W`, and `B` channels for simultaneous address/data phase dispatch.
+* **Latency Masking:** Implemented 1-deep Store Buffers to prevent pipeline stalls during main memory writes.
+* **Critical-Word-First:** Architected Line Fill Buffers using AXI `WRAP` bursts to instantly wake up the CPU pipeline on Cache Misses.
+
 ## 🚀 Key Architectural Features
 * **5-Stage Pipeline:** Instruction Fetch (IF), Decode (ID), Execute (EX), Memory (MEM), and Writeback (WB).
 * **Hazard Resolution:** * Full internal data forwarding (bypassing) to resolve Read-After-Write (RAW) hazards without stalling.
@@ -25,7 +31,7 @@ Analytical cycle modeling shows up to **3x instruction count reduction** and up 
 * **Optimized Storage:** Register File implemented utilizing FPGA Distributed RAM (LUTRAM) for extreme area efficiency.
 
 ## ⚡ Custom Graph Accelerator (ISA Extension)
-To eliminate branch prediction penalties during the heuristic calculations of pathfinding algorithms, the ALU was extended with custom instructions utilizing a dedicated opcode (`OP_CUSTOM_0: 7'b0001011`).
+To eliminate branch prediction penalties during the heuristic calculations of pathfinding algorithms, the Decode stage and ALU were extended with custom instructions utilizing a dedicated opcode (`OP_CUSTOM_0: 7'b0001011`).
 
 | Instruction | Funct3 | Opcode    | Operation | Application |
 | :--- | :--- | :--- | :--- | :--- |
@@ -46,11 +52,10 @@ The core abandons standard directed testbenches in favor of an Object-Oriented *
 ## 📊 Synthesis & Implementation Results
 Synthesized via Xilinx Vivado for standard FPGA deployment.
 
-* **Target Clock Frequency ($F_{max}$):** 89.3 MHz (Passing WNS)
-* **Look-Up Tables (LUTs):** 2253
-* **LUTRAM:** 512
-* **Flip-Flops (FF):** 1542
-* **I/O Ports:** 66
+* **Target Clock Frequency ($F_{max}$):** 92.2 MHz (Passing WNS)
+* **Look-Up Tables (LUTs):** 1731
+* **Flip-Flops (FF):** 1746
+
 
 
 
