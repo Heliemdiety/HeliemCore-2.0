@@ -1,6 +1,6 @@
 # Hardware Accelerated RV32I SoC via Custom ISA & AXI4 Memory Subsystem
 
-> **Developed by Monish Chandra Janghel** | *Electronics and Communication Engineering, NIT Raipur* > 📄 **IEEE Publication:** [Accepted and Presented at IEEE INDICON (https://ieeexplore.ieee.org/document/11392913)](#)
+> **Developed by Monish Chandra Janghel** | *Electronics and Communication Engineering, NIT Raipur* > 📄 **IEEE Publication:** [Accepted and Presented at IEEE INDICON](https://ieeexplore.ieee.org/document/11392913)
 
 A ground-up implementation of a 32-bit RISC-V processor (RV32I base integer instruction set) written entirely in SystemVerilog. This core features a classic 5-stage pipeline with dual-domain hazard resolution, an **AMBA AXI4-Full memory subsystem**, full data forwarding, hazard detection, and a custom Instruction Set Architecture (ISA) extension specifically designed to accelerate graph traversal algorithms like Dijkstra and A*.
 
