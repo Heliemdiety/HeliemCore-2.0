@@ -17,6 +17,13 @@ Analytical cycle modeling shows up to **3x instruction count reduction** and up 
 
 ---
 
+<img width="1381" height="645" alt="Screenshot 2025-12-09 203242" src="https://github.com/user-attachments/assets/1d410ae4-0692-4bd7-886d-8a8e67d10e65" />
+
+
+
+
+
+
 ## 🚀 Latest Architecture Update: AXI4-Full Memory Subsystem
 HeliemCore has been upgraded from a standard 1-cycle academic memory model to a professional, non-blocking **AMBA AXI4-Full** memory subsystem to interface with standard DDR memory controllers.
 * **Decoupled FSMs:** Independent tracking of `AW`, `W`, and `B` channels for simultaneous address/data phase dispatch.
@@ -40,6 +47,48 @@ To eliminate branch prediction penalties during the heuristic calculations of pa
 
 *By executing Absolute Difference and Unsigned Minimum in a single clock cycle, this accelerator prevents pipeline flushes that would normally occur during the conditional branching of standard `if-else` heuristic math.*
 
+<br />
+<br />
+
+<img width="1357" height="660" alt="Screenshot 2025-12-11 132255" src="https://github.com/user-attachments/assets/13456688-a814-460d-9a31-a515ede44363" />
+<br />
+<br />
+
+<img width="1361" height="660" alt="Screenshot 2025-12-11 134024" src="https://github.com/user-attachments/assets/61645c79-b55c-43aa-b951-518741271041" />
+
+
+<br />
+<br />
+
+
+
+<table align="center" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center" width="50%">
+      <img src="https://github.com/user-attachments/assets/31501116-95c8-4ea3-bcab-a8cdd87405e4" width="95%" alt="Instruction Count" />
+      <br />
+      <b>📊 Instruction Count</b>
+      <p><i></i></p>
+    </td>
+    <td align="center" width="50%">
+      <img src="https://github.com/user-attachments/assets/d0d4c576-84ea-4a8e-b0a1-d37f76cc1c39" width="95%" alt="Cycle Count" />
+      <br />
+      <b>⚡ Cycle Count</b>
+      <p><i></i></p>
+    </td>
+  </tr>
+</table>
+
+
+
+> [!NOTE]
+> **Performance Observations**
+> * **LIMITATION: BELLMAN-FORD** Shows no performance gain. The algorithm relies on signed comparisons for negative edge weights, which are incompatible with the unsigned UMIN instruction. This forces the fallback to the standard software baseline ...
+> * **IDEAL USE CASE: PRIM'S MST** Demonstrates the ideal scenario. Its pure "update-if smaller" kernel maps directly to a single UMIN instruction. This results in a 5x speedup (1 cycle vs. 5 cycles) over the branchless software equivalent.
+
+
+
+
 ## 🔬 Design Verification (UVM)
 The core abandons standard directed testbenches in favor of an Object-Oriented **UVM** environment to prove mathematical perfection under pipeline stress.
 
@@ -56,6 +105,8 @@ Synthesized via Xilinx Vivado for standard FPGA deployment.
 * **Look-Up Tables (LUTs):** 1731
 * **Flip-Flops (FF):** 1746
 
-
-
+---
+<p align="center">
+<small><i>© 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses. Certain figures and data points are adapted from the author's original work presented at INDICON 2026.</i></small>
+</p>
 
