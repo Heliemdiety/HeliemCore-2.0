@@ -106,7 +106,7 @@ module riscv_core_top (
             
             // --- IF/ID Register ---
             if (flush_if_id) begin
-                if_id_reg      <= '0;
+               // if_id_reg      <= '0;              -- no need for this , this is just increasing the fanout 
                 if_id_reg.inst <= 32'h00000033; // NOP
             end else if (!stall_id) begin
                 if_id_reg.pc   <= if_pc;
@@ -115,24 +115,26 @@ module riscv_core_top (
             end
 
             // --- ID/EX Register ---
+            // 1. Unconditional datapath flow 
+            id_ex_reg.pc       <= if_id_reg.pc;
+            id_ex_reg.imm      <= id_imm;
+            id_ex_reg.rs1_data <= id_rs1_data;
+            id_ex_reg.rs2_data <= id_rs2_data;
+            id_ex_reg.rs1      <= id_rs1;
+            id_ex_reg.rs2      <= id_rs2;
+            id_ex_reg.rd       <= id_rd;
+            id_ex_reg.funct3   <= id_funct3;
+            id_ex_pc_plus_4    <= if_id_pc_plus_4;
+
+            // 2. Conditional Control Flush ()
             if (flush_id_ex) begin
-                id_ex_reg       <= '0; 
-                id_ex_pc_plus_4 <= '0;
+                id_ex_reg.ctrl <= '0; // ONLY zero out control signals to create a pipeline bubble
 `ifndef SYNTHESIS
                 id_ex_rvfi_pc   <= '0;
-                id_ex_rvfi_inst <= 32'h00000033;
+                id_ex_rvfi_inst <= 32'h00000033; // NOP for the verifier
 `endif
             end else begin
-                id_ex_reg.pc       <= if_id_reg.pc;
-                id_ex_reg.imm      <= id_imm;
-                id_ex_reg.rs1_data <= id_rs1_data;
-                id_ex_reg.rs2_data <= id_rs2_data;
-                id_ex_reg.rs1      <= id_rs1;
-                id_ex_reg.rs2      <= id_rs2;
-                id_ex_reg.rd       <= id_rd;
-                id_ex_reg.funct3   <= id_funct3;
-                id_ex_reg.ctrl     <= id_ctrl;
-                id_ex_pc_plus_4    <= if_id_pc_plus_4;
+                id_ex_reg.ctrl <= id_ctrl;
 `ifndef SYNTHESIS
                 id_ex_rvfi_pc   <= if_id_reg.pc;
                 id_ex_rvfi_inst <= if_id_reg.inst;
