@@ -122,5 +122,15 @@ module instruction_decoder (
 
             default: ; 
         endcase
+
+        
+        // Handle x0 write suppression once during decode.
+        // This removes the need for repeated rd==0 comparisons in later stages
+    
+        if (inst[11:7] == 5'd0) begin
+            ctrl.reg_write = 1'b0;
+        end
+
+        
     end
 endmodule

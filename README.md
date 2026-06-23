@@ -101,10 +101,10 @@ The core abandons standard directed testbenches in favor of an Object-Oriented *
 ## 📊 Synthesis & Implementation Results
 Synthesized via Xilinx Vivado for standard FPGA deployment.
 > **Note for Synthesis/Timing:** To synthesize without running out of physical I/O pins, run `set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value {-mode out_of_context} -objects [get_runs synth_1]` in the Vivado Tcl console before running synthesis.
-* **Target Clock Frequency ($F_{max}$):** 92.2 MHz (Passing WNS)
-* **Look-Up Tables (LUTs):** 1731
-* **Flip-Flops (FF):** 1746
-
+* **Target Clock Frequency ($F_{max}$):** 111 MHz (Passing WNS)
+* **Look-Up Tables (LUTs):** 1843
+* **Flip-Flops (FF):** 1745
+* *Timing closure optimizations improved Fmax from 92.2 MHz to 111 MHz with a modest increase in area.*
 ---
 <p align="center">
 <small><i>© 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses. Certain figures and data points are adapted from the author's original work presented at INDICON 2026.</i></small>

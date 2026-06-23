@@ -15,23 +15,25 @@ module rv32_forward (
 
     always_comb begin
         forward_a = 2'b00; // Default: No forwarding
-        forward_b = 2'b00;
+        forward_b = 2'b00; 
+
+        // made changes in the instruction decode stage ,, decoder now  guarantees reg_write will never be high for x0, we can strip the rd != 5'd0 checks out of the forwarding unit entirely.
 
         // --- FORWARD A (rs1) ---
         // Priority 1: EX/MEM Hazard (Most recent instruction)
-        if (ex_mem_reg.ctrl.reg_write && (ex_mem_reg.rd != 5'd0) && (ex_mem_reg.rd == ex_rs1)) begin
+        if (ex_mem_reg.ctrl.reg_write && (ex_mem_reg.rd == ex_rs1)) begin        
             forward_a = 2'b01;
         end
         // Priority 2: MEM/WB Hazard (Older instruction)
-        else if (mem_wb_reg.ctrl.reg_write && (mem_wb_reg.rd != 5'd0) && (mem_wb_reg.rd == ex_rs1)) begin
+        else if (mem_wb_reg.ctrl.reg_write && (mem_wb_reg.rd == ex_rs1)) begin
             forward_a = 2'b10;
         end
 
         // --- FORWARD B (rs2) ---
-        if (ex_mem_reg.ctrl.reg_write && (ex_mem_reg.rd != 5'd0) && (ex_mem_reg.rd == ex_rs2)) begin
+        if (ex_mem_reg.ctrl.reg_write && (ex_mem_reg.rd == ex_rs2)) begin
             forward_b = 2'b01;
         end
-        else if (mem_wb_reg.ctrl.reg_write && (mem_wb_reg.rd != 5'd0) && (mem_wb_reg.rd == ex_rs2)) begin
+        else if (mem_wb_reg.ctrl.reg_write && (mem_wb_reg.rd == ex_rs2)) begin
             forward_b = 2'b10;
         end
     end

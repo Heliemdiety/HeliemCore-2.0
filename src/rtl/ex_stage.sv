@@ -1,5 +1,5 @@
 import rv32_pkg::*;
- 
+
 module rv32_execute (
     // The giant struct containing everything from the Decode stage
     input  id_ex_t     id_ex_reg,
@@ -27,30 +27,29 @@ module rv32_execute (
     logic  zero, less_signed, less_unsigned;
     logic  branch_condition_met;
 
-    // 1. Data Forwarding Multiplexers
-    always_comb begin
-        // Operand A Forwarding
-        case (forward_a)
-            2'b01: op_a_fwd = forward_ex_data;
-            2'b10: op_a_fwd = forward_mem_data;
-            default: op_a_fwd = id_ex_reg.rs1_data;
-        endcase
 
-        // Operand B Forwarding
-        case (forward_b)
-            2'b01: op_b_fwd = forward_ex_data;
-            2'b10: op_b_fwd = forward_mem_data;
-            default: op_b_fwd = id_ex_reg.rs2_data;
-        endcase
+    // 1 & 2. Unified Flattened ALU Input Multiplexers
+    always_comb begin
+        // Operand A 
+        if (id_ex_reg.ctrl.alu_src_a) alu_in_a = id_ex_reg.pc;
+        else if (forward_a == 2'b01)  alu_in_a = forward_ex_data;
+        else if (forward_a == 2'b10)  alu_in_a = forward_mem_data;
+        else                          alu_in_a = id_ex_reg.rs1_data;
+
+        // Operand B
+        if (id_ex_reg.ctrl.alu_src_b) alu_in_b = id_ex_reg.imm;
+        else if (forward_b == 2'b01)  alu_in_b = forward_ex_data;
+        else if (forward_b == 2'b10)  alu_in_b = forward_mem_data;
+        else                          alu_in_b = id_ex_reg.rs2_data;
+        
+        op_a_fwd = (forward_a == 2'b01) ? forward_ex_data : 
+                   (forward_a == 2'b10) ? forward_mem_data : id_ex_reg.rs1_data;
+                   
+        op_b_fwd = (forward_b == 2'b01) ? forward_ex_data : 
+                   (forward_b == 2'b10) ? forward_mem_data : id_ex_reg.rs2_data;
     end
 
-    // 2. ALU Input Multiplexers
-    // src_a == 1 ? PC : Forwarded rs1
-    assign alu_in_a = (id_ex_reg.ctrl.alu_src_a) ? id_ex_reg.pc  : op_a_fwd;
-    // src_b == 1 ? Immediate : Forwarded rs2
-    assign alu_in_b = (id_ex_reg.ctrl.alu_src_b) ? id_ex_reg.imm : op_b_fwd;
-
-
+    
     // 3. The ALU
     rv32_alu alu_inst (
         .a(alu_in_a),
@@ -62,15 +61,16 @@ module rv32_execute (
         .less_unsigned(less_unsigned)
     );
 
+
     // 4. Branch Evaluation Logic
     always_comb begin
         case (id_ex_reg.funct3)
-            3'b000: branch_condition_met = zero;             // BEQ
-            3'b001: branch_condition_met = !zero;            // BNE
-            3'b100: branch_condition_met = less_signed;      // BLT
-            3'b101: branch_condition_met = !less_signed;     // BGE
-            3'b110: branch_condition_met = less_unsigned;    // BLTU
-            3'b111: branch_condition_met = !less_unsigned;   // BGEU
+            3'b000: branch_condition_met = (op_a_fwd == op_b_fwd);                  // BEQ
+            3'b001: branch_condition_met = (op_a_fwd != op_b_fwd);                  // BNE
+            3'b100: branch_condition_met = ($signed(op_a_fwd) < $signed(op_b_fwd)); // BLT
+            3'b101: branch_condition_met = ($signed(op_a_fwd) >= $signed(op_b_fwd));// BGE
+            3'b110: branch_condition_met = (op_a_fwd < op_b_fwd);                   // BLTU
+            3'b111: branch_condition_met = (op_a_fwd >= op_b_fwd);                  // BGEU
             default: branch_condition_met = 1'b0;
         endcase
     end
@@ -80,17 +80,22 @@ module rv32_execute (
 
 
     // 5. Target Address Calculation (Branch / JAL / JALR)
+    word_t branch_jal_target;
+    word_t jalr_target;
+
+    assign branch_jal_target = id_ex_reg.pc + id_ex_reg.imm;
+    // The RISC-V spec requires setting the LSB of JALR target to 0.
+    assign jalr_target       = (op_a_fwd + id_ex_reg.imm) & 32'hFFFFFFFE; 
+
     always_comb begin
-        // JALR sets alu_src_b=1 in the decoder. The ALU naturally calculates rs1 + imm.
-        // The RISC-V spec requires setting the LSB of JALR target to 0.
         if (id_ex_reg.ctrl.is_jump && id_ex_reg.ctrl.alu_src_b == 1'b1) begin
-            ex_target_addr = alu_result & 32'hFFFFFFFE; 
+            ex_target_addr = jalr_target;
         end else begin
-            // Standard Branches and JAL use PC + Immediate
-            ex_target_addr = id_ex_reg.pc + id_ex_reg.imm;
+            ex_target_addr = branch_jal_target; 
         end
     end
 
+    
     // 6. Package the data for the next stage (MEM)
     always_comb begin
         ex_mem_data.alu_result = alu_result;

@@ -10,23 +10,30 @@ module rv32_alu (
     output logic    less_unsigned
 );
 
-    word_t diff;
-    logic  is_negative;
+    // Internal wires for parallel math
+    word_t diff_ab;
+    word_t diff_ba;
+    logic  cmp_u;
+    logic  cmp_s;
 
     always_comb begin
-        // Compute standard difference once (reused by SUB, SLT, and ADIFF)
-        diff = a - b;
-        is_negative = diff[31];
+        
+        // 1. PARALLEL COMPUTE EVERYTHING
 
-        // Default output
-        result = '0;
+        diff_ab = a - b;
+        diff_ba = b - a;                             // Parallel reverse-subtraction for ADIFF
+        cmp_u   = (a < b);                           // Dedicated unsigned comparator
+        cmp_s   = ($signed(a) < $signed(b));         // Dedicated signed comparator
+
+       
+        // 2. FLAT MULTIPLEXER (1-Level Deep)
 
         unique case (op)
             ALU_ADD:   result = a + b;
-            ALU_SUB:   result = diff;
+            ALU_SUB:   result = diff_ab;
             ALU_SLL:   result = a << b[4:0];
-            ALU_SLT:   result = {31'b0, ($signed(a) < $signed(b))};
-            ALU_SLTU:  result = {31'b0, (a < b)};
+            ALU_SLT:   result = {31'b0, cmp_s};
+            ALU_SLTU:  result = {31'b0, cmp_u};
             ALU_XOR:   result = a ^ b;
             ALU_SRL:   result = a >> b[4:0];
             ALU_SRA:   result = $signed(a) >>> b[4:0];
@@ -34,21 +41,22 @@ module rv32_alu (
             ALU_AND:   result = a & b;
             ALU_COPYB: result = b;
             
-            // --- Custom Graph Instructions ---
-            // UMIN: Unsigned Minimum
-            ALU_UMIN:  result = (a < b) ? a : b;
+            // --- Custom Graph Instructions Optimized ---
+            // UMIN uses the parallel unsigned comparator directly
+            ALU_UMIN:  result = cmp_u ? a : b;
             
-            // ADIFF: Absolute Difference
-            // If diff is negative, take 2's complement (~diff + 1)
-            ALU_ADIFF: result = is_negative ? (~diff + 1'b1) : diff;
+            // ADIFF uses the parallel reverse-subtraction. No series math.
+            ALU_ADIFF: result = diff_ab[31] ? diff_ba : diff_ab;
             
             default:   result = '0;
         endcase
     end
 
-    // Flags used by the Branch unit later
-    assign zero          = (diff == '0);
-    assign less_signed   = ($signed(a) < $signed(b));
-    assign less_unsigned = (a < b);
+    
+    // 3. Flags 
+
+    assign zero          = (diff_ab == '0);
+    assign less_signed   = cmp_s;
+    assign less_unsigned = cmp_u;
 
 endmodule

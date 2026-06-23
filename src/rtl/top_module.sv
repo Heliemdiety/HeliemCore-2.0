@@ -103,16 +103,22 @@ module riscv_core_top (
 `endif
         end else if (!global_stall) begin 
             // THE GLOBAL STALL: Completely freezes the pipeline during AXI wait states!
-            
-            // --- IF/ID Register ---
-            if (flush_if_id) begin
-               // if_id_reg      <= '0;              -- no need for this , this is just increasing the fanout 
-                if_id_reg.inst <= 32'h00000033; // NOP
-            end else if (!stall_id) begin
-                if_id_reg.pc   <= if_pc;
-                if_id_reg.inst <= if_inst;
+
+         
+        // --- IF/ID Register ---
+            // 1. Unconditional datapath update (Only stalls block this now)
+            if (!stall_id) begin
+                if_id_reg.pc    <= if_pc;
                 if_id_pc_plus_4 <= if_pc_plus_4;
             end
+
+            // 2. Surgical instruction flush (The CE fanout is now tiny!)
+            if (flush_if_id) begin
+                if_id_reg.inst <= 32'h00000033; // NOP
+            end else if (!stall_id) begin
+                if_id_reg.inst <= if_inst;
+            end
+        
 
             // --- ID/EX Register ---
             // 1. Unconditional datapath flow 
