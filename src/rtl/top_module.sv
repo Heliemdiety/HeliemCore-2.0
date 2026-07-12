@@ -46,7 +46,12 @@ module riscv_core_top (
     input  logic [1:0]  m_axi_mem_rresp,
     input  logic        m_axi_mem_rlast,
     input  logic        m_axi_mem_rvalid,
-    output logic        m_axi_mem_rready
+    output logic        m_axi_mem_rready,
+
+
+    // CDC interconnect 
+    output logic cnn_start_cmd,
+    input logic ext_interrupt
 );
 
     // =========================================================================
@@ -241,7 +246,9 @@ module riscv_core_top (
         .cpu_load_data(cpu_load_data), .cpu_load_valid_out(cpu_load_valid_out),
         .cpu_store_addr(cpu_store_addr), .cpu_store_data(cpu_store_data), .cpu_store_strb(cpu_store_strb),
         .cpu_store_valid(cpu_store_valid), .cpu_store_ready(cpu_store_ready), .cpu_trap_exception(cpu_trap_exception),
-        .mem_bus_stall(mem_bus_stall), .mem_wb_data(mem_wb_data_next)
+        .mem_bus_stall(mem_bus_stall), .mem_wb_data(mem_wb_data_next), 
+        // --- NEW PIN MAPPING HERE ---
+        .cnn_start_cmd(cnn_start_cmd) // FOR CDC 
     );
 
     rv32_writeback wb_inst (

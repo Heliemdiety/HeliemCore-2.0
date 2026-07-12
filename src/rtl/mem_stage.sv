@@ -27,8 +27,16 @@ module rv32_memory (
     output logic        mem_bus_stall,
 
     // Output to MEM/WB Pipeline Register
-    output mem_wb_t     mem_wb_data
+    output mem_wb_t     mem_wb_data,
+
+    // CDC PIN 
+    output logic cnn_start_cmd
 );
+
+    // CDC 
+    assign cnn_start_cmd = (cpu_store_valid && (cpu_store_addr == 32'hFFFF_FFFC));
+
+
 
     logic [1:0] addr_align;
     assign addr_align = ex_mem_reg.alu_result[1:0];
@@ -39,9 +47,18 @@ module rv32_memory (
     assign cpu_load_valid  = ex_mem_reg.ctrl.mem_read;
     
     assign cpu_store_addr  = {ex_mem_reg.alu_result[31:2], 2'b00};
-    assign cpu_store_valid = ex_mem_reg.ctrl.mem_write;
+    // this line is original in working CPU --- assign cpu_store_valid = ex_mem_reg.ctrl.mem_write;
 
-    
+
+    //--------------------------------------------------
+    // the CDC line 
+    // THE FIX: Suppress the AXI transaction if the address is our magic CNN trigger
+    assign cpu_store_valid = ex_mem_reg.ctrl.mem_write && (cpu_store_addr != 32'hFFFF_FFFC);
+    //Because cpu_store_valid stays low, the AXI controller ignores it, cpu_store_ready stays high, the pipeline doesn't stall, and your CPU instantly moves on to the next instruction while the CDC bridge fires off the toggle to the CNN.
+    //-------------------------------------------------------------------------
+
+
+
     // 1. Store Data Alignment & Strobes
     always_comb begin
         cpu_store_data = ex_mem_reg.rs2_data;
