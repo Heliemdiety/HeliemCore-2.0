@@ -33,11 +33,6 @@ module rv32_memory (
     output logic cnn_start_cmd
 );
 
-    // CDC 
-    assign cnn_start_cmd = (cpu_store_valid && (cpu_store_addr == 32'hFFFF_FFFC));
-
-
-
     logic [1:0] addr_align;
     assign addr_align = ex_mem_reg.alu_result[1:0];
 
@@ -47,14 +42,38 @@ module rv32_memory (
     assign cpu_load_valid  = ex_mem_reg.ctrl.mem_read;
     
     assign cpu_store_addr  = {ex_mem_reg.alu_result[31:2], 2'b00};
-    // this line is original in working CPU --- assign cpu_store_valid = ex_mem_reg.ctrl.mem_write;
 
+    //--------------------------------------------------------------------
+    // CDC MMIO trigger (Memory-Mapped "kick the CNN" register)
+    //
+    // BUG THAT WAS HERE: cnn_start_cmd was defined as
+    //     cpu_store_valid && (addr == MAGIC)
+    // while cpu_store_valid was separately defined as
+    //     mem_write && (addr != MAGIC)
+    // Substituting one into the other:
+    //     cnn_start_cmd = mem_write && (addr != MAGIC) && (addr == MAGIC)
+    // which is a boolean tautology of FALSE for every possible address -
+    // cnn_start_cmd could never assert, so the CDC pulse never left the CPU.
+    //
+    // THE FIX: compute the "is this the magic trigger address" condition
+    // exactly once, and derive both signals from that single source of
+    // truth instead of from each other.
+    //--------------------------------------------------------------------
+    logic cnn_trigger_hit;
+    assign cnn_trigger_hit = ex_mem_reg.ctrl.mem_write && (cpu_store_addr == 32'hFFFF_FFFC);
 
-    //--------------------------------------------------
-    // the CDC line 
-    // THE FIX: Suppress the AXI transaction if the address is our magic CNN trigger
-    assign cpu_store_valid = ex_mem_reg.ctrl.mem_write && (cpu_store_addr != 32'hFFFF_FFFC);
-    //Because cpu_store_valid stays low, the AXI controller ignores it, cpu_store_ready stays high, the pipeline doesn't stall, and your CPU instantly moves on to the next instruction while the CDC bridge fires off the toggle to the CNN.
+    // Fire the 1-cycle CDC pulse directly off the raw store request.
+    assign cnn_start_cmd = cnn_trigger_hit;
+
+    // Suppress the real AXI transaction ONLY for the magic address so the
+    // AXI bus never sees it (and therefore never hangs waiting on BVALID);
+    // every other store passes through untouched.
+    assign cpu_store_valid = ex_mem_reg.ctrl.mem_write && !cnn_trigger_hit;
+    // Because cpu_store_valid stays low for the magic address, the AXI
+    // controller never launches a transaction, cpu_store_ready (which
+    // defaults high whenever the write BIU is idle) stays high, mem_bus_stall
+    // stays low, and the pipeline retires this instruction in exactly 1
+    // cycle while cnn_start_cmd pulses for that same single cycle.
     //-------------------------------------------------------------------------
 
 
